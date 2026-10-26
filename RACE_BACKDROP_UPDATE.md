@@ -1,0 +1,1 @@
+Expanded the procedural 3D circuit environment with roofed grandstands, structural trusses, concourse facades, generic sponsor panels, floodlight towers, and a distant paddock skyline. Crowd, flashes, confetti, cars and scroll-linked lights remain unchanged. Browser build not verified.

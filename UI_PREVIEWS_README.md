@@ -1,0 +1,1 @@
+15 custom-coded SVG interface prototypes in public/project-previews. These are concept UI previews built for the portfolio, not deployed applications or actual project screenshots. All displayed metrics are illustrative sample data. Update the SVG files with real product screenshots when applications are built.
