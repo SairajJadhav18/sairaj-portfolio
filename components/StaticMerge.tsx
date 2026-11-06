@@ -41,7 +41,7 @@ export default function StaticMerge({children}:{children:ReactNode}){
    Object.keys(geometry.attributes).forEach(name=>{if(!KEEP.includes(name))geometry.deleteAttribute(name)});
    if(!geometry.attributes.normal)geometry.computeVertexNormals();
    if(!geometry.attributes.uv)geometry.setAttribute('uv',new THREE.BufferAttribute(new Float32Array(geometry.attributes.position.count*2),2));
-   Object.keys(geometry.morphAttributes).forEach(name=>delete geometry.morphAttributes[name]);
+   geometry.morphAttributes={};
    geometry.clearGroups();
    relative.multiplyMatrices(inverse,mesh.matrixWorld);
    geometry.applyMatrix4(relative);

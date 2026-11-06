@@ -289,8 +289,9 @@ export default function SkillNetworkMap(){
    if(coordRef.current){const c=s.cam;coordRef.current.textContent=`X ${c.x.toFixed(0).padStart(4,'0')} · Y ${c.y.toFixed(0).padStart(4,'0')} · ${(c.z).toFixed(2)}×`;}
   }
   // ---- input ----
-  const hit=(x:number,y:number)=>{let best:string|null=null,bd=Infinity;
-   L.nodes.forEach(n=>{const p=toScreen(L.pos.get(n.key)!);const d=Math.hypot(p.x-x,p.y-y);const lim=n.kind==='hub'?Math.max(26,n.label.length*3.6):n.kind==='project'?18:13;if(d<lim&&d<bd){bd=d;best=n.key;}});return best;};
+  const hit=(x:number,y:number):string|null=>{let best:string|null=null,bd=Infinity;
+   for(const n of L.nodes){const p=toScreen(L.pos.get(n.key)!);const d=Math.hypot(p.x-x,p.y-y);const lim=n.kind==='hub'?Math.max(26,n.label.length*3.6):n.kind==='project'?18:13;if(d<lim&&d<bd){bd=d;best=n.key;}}
+   return best;};
   const local=(e:PointerEvent)=>{const r=cv.getBoundingClientRect();return {x:e.clientX-r.left,y:e.clientY-r.top};};
   const down=(e:PointerEvent)=>{const p=local(e);s.pointers.set(e.pointerId,p);
    if(s.pointers.size===2){const [a,b]=[...s.pointers.values()];s.drag={x:p.x,y:p.y,moved:true,camX:s.cam.x,camY:s.cam.y,pinch:{d:Math.hypot(a.x-b.x,a.y-b.y),z:s.cam.z}};}
