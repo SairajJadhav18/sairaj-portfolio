@@ -69,3 +69,28 @@ Enhanced the contact section with a detailed racing car, finish gantry, track li
 
 ## Race-start grandstands update
 The starting grid now includes two tiered spectator stands with animated cheering crowds, randomized camera flashes, and scroll-triggered confetti. Crowd and confetti are instanced to reduce draw calls. The earlier workstation runtime fix is retained.
+
+
+## Motion, gestures & engagement pass (Nov 2026)
+**Performance (less lag)**
+- `components/StaticMerge.tsx` merges the race scene's hundreds of static meshes into one draw call per material (cars, grandstands, circuit, track, light gantry). Animated meshes opt out with `userData={{noMerge:true}}`.
+- The race and Pixel canvases stop rendering when off-screen; resolution adapts automatically on slower devices (drei `PerformanceMonitor`). Clearcoat materials and four floodlight point lights were removed.
+- The custom cursor no longer re-renders the whole page on every mouse move; it sleeps when idle. The normal cursor comes back for touch, keyboard and reduced-motion users.
+- CSS animations pause in sections that are off-screen. The night-sky background is now a 48 KB WebP (was a 508 KB PNG).
+
+**Gestures & overlays**
+- Projects: drag with the mouse (with momentum), swipe on touch, ← → / Home / End keys, position dots and counter. Clicking a project opens a detail sheet: swipe down or Esc to close, swipe sideways or ← → to change project, focus is trapped and restored.
+- Mobile menu overlay with staggered links; swipe up or tap outside to close.
+- Expertise room: subtle pointer tilt, swipe or ← → through the 15 concepts, and on phones/tablets the details panel scrolls into view after a tap.
+
+**Lower bounce rate**
+- Fixed nav with section links, active-section highlight, scroll progress bar and an always-visible Résumé button (hides on scroll down, returns on scroll up).
+- Hero shows availability, three CTAs (Projects / Résumé / Contact), quick facts, and a "Skip intro" link; the HUD bar now reflects real scroll progress and the hero copy fades out as the cars launch.
+- Mid-page call to action after Experience; Open Graph / social preview metadata.
+
+
+## Realistic screenshots, skill network map, clean contact (Nov 2026)
+- **Project images** (`public/projects/*.webp`) are now realistic app screenshots built to match each description: a Power BI report, the clinic web dashboard, a Streamlit predictor, a MySQL query workspace on EC2, the Unity 6 editor showing the Level 2 binary vault, and a weekly timetable. They use **sample data**; swap in real captures with the same file names whenever you have them.
+- **Technical Expertise** is now `components/SkillNetworkMap.tsx`: an abstract topographic network map. The 6 projects and 15 concepts connect to shared skill hubs (data in `data/network.ts`). Selecting a node sends a signal along the shortest path through the network while the camera flies there. Gestures: drag to pan, pinch or Ctrl/⌘ + scroll to zoom, tap nodes, ← → keys, swipe the details panel, guided tour button. On tall phone screens the map is drawn rotated so it fills the screen.
+- **Contact** is now `components/ContactSection.tsx`: a profile card (availability, copy-email, LinkedIn, GitHub, résumé) and the message form. Pixel the robot is no longer used.
+- No longer used by the page (safe to delete): `ExpertiseWorkstation.tsx`, `RobotDogContact.tsx`, `Pixel3D.tsx`, `public/isometric-room.png`.

@@ -1,7 +1,8 @@
 "use client";
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { RoundedBox } from '@react-three/drei';
-import { useEffect, useMemo, useRef } from 'react';
+import { RoundedBox, PerformanceMonitor } from '@react-three/drei';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import StaticMerge from './StaticMerge';
 import * as THREE from 'three';
 
 type Props={progress:React.MutableRefObject<number>;reduced:boolean};
@@ -70,18 +71,18 @@ function Car({lane,index,progress,reduced}:{lane:number;index:number}&Props){
   ref.current.position.z=THREE.MathUtils.damp(ref.current.position.z,z,12,dt);
   ref.current.rotation.z=Math.sin(p*19+index)*.006*throttle;
  });
- return <group ref={ref} position={[lane*2.5,0,6.5+Math.floor(index/2)*4.7]}>
+ return <group ref={ref} position={[lane*2.5,0,6.5+Math.floor(index/2)*4.7]}><StaticMerge>
   {/* Low underfloor and tapered center chassis. */}
   <RoundedBox args={[.86,.19,3.55]} radius={.07} position={[0,.28,.02]} castShadow>
    <meshStandardMaterial color="#111820" metalness={.45} roughness={.45}/>
   </RoundedBox>
   <RoundedBox args={[.72,.36,1.82]} radius={.15} position={[0,.49,.18]} castShadow>
-   <meshPhysicalMaterial color={paint} metalness={.16} roughness={.43} clearcoat={.32} clearcoatRoughness={.42}/>
+   <meshStandardMaterial color={paint} metalness={.16} roughness={.43}/>
   </RoundedBox>
   {/* Sculpted sidepods with narrower front air inlets. */}
   {[-1,1].map(side=><group key={side}>
    <RoundedBox args={[.48,.33,1.28]} radius={.13} position={[side*.59,.44,.43]} castShadow>
-    <meshPhysicalMaterial color={paint} metalness={.14} roughness={.48} clearcoat={.25}/>
+    <meshStandardMaterial color={paint} metalness={.14} roughness={.48}/>
    </RoundedBox>
    <mesh position={[side*.61,.58,-.26]} rotation={[0,0,side*.15]}>
     <boxGeometry args={[.35,.1,.15]}/>
@@ -95,7 +96,7 @@ function Car({lane,index,progress,reduced}:{lane:number;index:number}&Props){
   {/* Long tapered nose: tip is at negative Z. */}
   <mesh position={[0,.48,-1.17]} rotation={[Math.PI/2,0,0]} castShadow>
    <cylinderGeometry args={[.29,.115,1.65,8,1]}/>
-   <meshPhysicalMaterial color={paint} metalness={.15} roughness={.45} clearcoat={.3}/>
+   <meshStandardMaterial color={paint} metalness={.15} roughness={.45}/>
   </mesh>
   <RoundedBox args={[.18,.12,.44]} radius={.05} position={[0,.42,-1.95]} castShadow>
    <meshStandardMaterial color={paint} metalness={.4}/>
@@ -121,13 +122,13 @@ function Car({lane,index,progress,reduced}:{lane:number;index:number}&Props){
   {/* Air intake, engine cover, cockpit opening, driver helmet. */}
   <mesh position={[0,.73,.74]} castShadow>
    <boxGeometry args={[.37,.33,.65]}/>
-   <meshPhysicalMaterial color={paint} metalness={.15} roughness={.45} clearcoat={.3}/>
+   <meshStandardMaterial color={paint} metalness={.15} roughness={.45}/>
   </mesh>
   <mesh position={[0,.73,-.29]}><sphereGeometry args={[.36,18,10,0,Math.PI*2,0,Math.PI*.55]}/>
    <meshStandardMaterial color="#101923" roughness={.38}/></mesh>
   <mesh position={[0,.83,-.3]} castShadow>
    <sphereGeometry args={[.18,16,12]}/>
-   <meshPhysicalMaterial color={index%2?'#e9f2f2':'#f5d76b'} roughness={.22} metalness={.18} clearcoat={1}/>
+   <meshStandardMaterial color={index%2?'#e9f2f2':'#f5d76b'} roughness={.22} metalness={.18}/>
   </mesh>
   <mesh position={[0,.86,-.46]}><boxGeometry args={[.25,.07,.11]}/>
    <meshStandardMaterial color="#131c26" metalness={.4}/></mesh>
@@ -150,7 +151,7 @@ function Car({lane,index,progress,reduced}:{lane:number;index:number}&Props){
   </mesh>
   <mesh position={[0,.39,1.84]}><boxGeometry args={[.34,.06,.04]}/>
    <meshBasicMaterial color="#df2629" toneMapped={false}/></mesh>
- </group>;
+ </StaticMerge></group>;
 }
 // Instanced spectator geometry keeps the cheering crowd inexpensive to render.
 const spectatorColors=['#e9cfb1','#f1bba0','#bc8b70','#8c6257','#e4a6b5','#d2bfe5','#87b7ae','#e9d78d'];
@@ -180,27 +181,29 @@ function Grandstand({side,progress,reduced}:{side:-1|1}&Props){
   if(bodies.current)bodies.current.instanceMatrix.needsUpdate=true;
   if(arms.current)arms.current.instanceMatrix.needsUpdate=true;
  });
- return <group>
+ return <group><StaticMerge>
   <mesh position={[side*10.4,.43,-22]}><boxGeometry args={[7.4,.85,87]}/><meshStandardMaterial color="#172630" metalness={.25} roughness={.78}/></mesh>
   {Array.from({length:4},(_,row)=><group key={row}>
    <mesh position={[side*(8.7+row*1.25),.7+row*.72,-22]}><boxGeometry args={[1.3,.32,87]}/><meshStandardMaterial color={row%2?'#47555d':'#58636a'} roughness={.8}/></mesh>
    <mesh position={[side*(9.25+row*1.25),.9+row*.72,-22]}><boxGeometry args={[.09,.75,87]}/><meshStandardMaterial color="#273943"/></mesh>
   </group>)}
+  <mesh position={[side*7.05,2.2,-22]}><boxGeometry args={[.14,3.7,87]}/><meshStandardMaterial color="#8a9ba0" transparent opacity={.35}/></mesh>
+  {Array.from({length:18},(_,i)=><mesh key={i} position={[side*7.04,3.7,16-i*5]}><boxGeometry args={[.2,.2,.2]}/><meshBasicMaterial color="#f0dbac"/></mesh>)}
+  </StaticMerge>
   <instancedMesh ref={bodies} args={[undefined,undefined,people.length]} frustumCulled={false}>
    <capsuleGeometry args={[.43,.65,3,6]}/><meshStandardMaterial vertexColors roughness={.88}/>
   </instancedMesh>
   <instancedMesh ref={arms} args={[undefined,undefined,people.length]} frustumCulled={false}>
    <capsuleGeometry args={[.33,.75,3,5]}/><meshStandardMaterial color="#e4c1a6" roughness={.9}/>
   </instancedMesh>
-  <mesh position={[side*7.05,2.2,-22]}><boxGeometry args={[.14,3.7,87]}/><meshStandardMaterial color="#8a9ba0" transparent opacity={.35}/></mesh>
-  {Array.from({length:18},(_,i)=><mesh key={i} position={[side*7.04,3.7,16-i*5]}><boxGeometry args={[.2,.2,.2]}/><meshBasicMaterial color="#f0dbac"/></mesh>)}
+
  </group>;
 }
 // Grounded club-racing circuit: galvanized steel, stained concrete, steel trusses,
 // safety fencing, pit infrastructure and modest trackside signage. No neon architecture.
 function CircuitBackdrop(){
  const sections=Array.from({length:15},(_,i)=>19-i*6.3);
- return <group>
+ return <StaticMerge>
   {([-1,1] as const).map(side=><group key={side}>
    {/* Concrete rear wall and open, tiered grandstand support structure. */}
    <mesh position={[side*15.15,2.2,-25]}><boxGeometry args={[.38,4.4,100]}/><meshStandardMaterial color="#676c69" roughness={.96}/></mesh>
@@ -253,14 +256,13 @@ function CircuitBackdrop(){
      <mesh position={[0,0,.155]}><boxGeometry args={[.72,.5,.035]}/><meshStandardMaterial color="#e7f0f7" emissive="#d5e9ff" emissiveIntensity={2.7} toneMapped={false}/></mesh>
      {[-.22,0,.22].map(px=>[-.13,.13].map(py=><mesh key={`${px}-${py}`} position={[px,py,.182]}><circleGeometry args={[.065,12]}/><meshBasicMaterial color="#ffffff" toneMapped={false}/></mesh>))}
     </group>)}
-    <pointLight position={[0,14.8,4.6]} color="#d8ebff" intensity={26} distance={24} decay={2}/>
    </group>)}
   </group>)}
   {/* Service bridge and a subdued horizon of utility buildings. */}
   <mesh position={[0,10.9,-48]}><boxGeometry args={[36,1.8,1.4]}/><meshStandardMaterial color="#3b4547" metalness={.25} roughness={.83}/></mesh>
   <mesh position={[0,10.9,-47.2]}><boxGeometry args={[33,.42,.05]}/><meshStandardMaterial color="#9a9e96" roughness={.85}/></mesh>
   {Array.from({length:13},(_,i)=>{const x=-77+i*13;const h=3+(i*7%6);return <mesh key={i} position={[x,h/2,-106-(i%3)*4]}><boxGeometry args={[8,h,7]}/><meshStandardMaterial color={i%2?'#4a5455':'#414a4b'} roughness={.97}/></mesh>})}
- </group>;
+ </StaticMerge>;
 }
 function FlashCameras({progress,reduced}:Props){
  const flashes=useRef<(THREE.Mesh|null)[]>([]);
@@ -349,18 +351,40 @@ function Race({progress,reduced}:Props){
  });
  return <>
   <color attach="background" args={['#202c45']}/><fog attach="fog" args={['#202c45',58,145]}/>
-  <ambientLight intensity={.75}/><hemisphereLight args={["#a5b8dc","#343a4e",1.25]}/><directionalLight position={[-7,16,6]} intensity={2.2} color="#dbe6ff"/><pointLight ref={launchGlow} position={[0,7,1]} intensity={12} color="#ff6254" distance={26}/>
-  <CircuitBackdrop/><Grandstand side={-1} progress={progress} reduced={reduced}/><Grandstand side={1} progress={progress} reduced={reduced}/><FlashCameras progress={progress} reduced={reduced}/><mesh rotation={[-Math.PI/2,0,0]} position={[0,-.05,-18]}><planeGeometry args={[150,170]}/><meshStandardMaterial color="#56605d" roughness={1}/></mesh>
+  <ambientLight intensity={.8}/><hemisphereLight args={["#a5b8dc","#343a4e",1.45]}/><directionalLight position={[-7,16,6]} intensity={2.2} color="#dbe6ff"/><pointLight ref={launchGlow} position={[0,7,1]} intensity={12} color="#ff6254" distance={26}/>
+  <CircuitBackdrop/><Grandstand side={-1} progress={progress} reduced={reduced}/><Grandstand side={1} progress={progress} reduced={reduced}/><FlashCameras progress={progress} reduced={reduced}/><StaticMerge><mesh rotation={[-Math.PI/2,0,0]} position={[0,-.05,-18]}><planeGeometry args={[150,170]}/><meshStandardMaterial color="#56605d" roughness={1}/></mesh>
   <mesh rotation={[-Math.PI/2,0,0]} position={[0,0,-18]}><planeGeometry args={[12.4,170]}/><meshStandardMaterial color="#343b3a" roughness={.99}/></mesh>
   {[-6.25,6.25].map(x=><mesh key={x} position={[x,.035,-18]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[.19,170]}/><meshBasicMaterial color="#e1ddd0"/></mesh>)}
   {[-3.1,0,3.1].map(x=>Array.from({length:22},(_,i)=><mesh key={`${x}-${i}`} position={[x,.045,13-i*5.1]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[.09,2.5]}/><meshBasicMaterial color="#b8bbb4"/></mesh>))}
   {Array.from({length:12},(_,i)=><mesh key={i} position={[0,.053,12-i*4.8]} rotation={[-Math.PI/2,0,0]}><planeGeometry args={[12.1,.11]}/><meshBasicMaterial color="#e8efeb" transparent opacity={i<4?.7:.28}/></mesh>)}
-  {Array.from({length:8},(_,i)=><Car key={i} lane={i%2===0?-1:1} index={i} progress={progress} reduced={reduced}/>)}
-  <group position={[0,7.0,-1.6]}>
-   <RoundedBox args={[9.2,1.35,.65]} radius={.16}><meshStandardMaterial color="#080e15" metalness={.7} roughness={.3}/></RoundedBox>
-   {Array.from({length:5},(_,i)=><group key={i} position={[-3.3+i*1.65,0,.39]}><mesh><cylinderGeometry args={[.54,.54,.24,48]}/><meshStandardMaterial color="#101720" metalness={.72} roughness={.24}/></mesh><mesh position={[0,0,.115]}><torusGeometry args={[.43,.055,10,48]}/><meshStandardMaterial color="#9aa8b6" metalness={.86} roughness={.22}/></mesh><mesh ref={el=>{lightRefs.current[i]=el}} position={[0,0,.09]}><circleGeometry args={[.385,48]}/><meshStandardMaterial color="#292c31" emissive="#090a0b" emissiveIntensity={.2} toneMapped={false}/></mesh><mesh ref={el=>{haloRefs.current[i]=el}} position={[0,0,.14]}><circleGeometry args={[.55,48]}/><meshBasicMaterial color="#ff392d" transparent opacity={0} depthWrite={false}/></mesh><CountdownDigit number={5-i}/></group>)}
-  </group>
   {[-7.4,7.4].map(x=><group key={x}>{Array.from({length:15},(_,i)=><mesh key={i} position={[x,1.7,13-i*7]}><boxGeometry args={[.12,3.4,.12]}/><meshStandardMaterial color="#51616c"/></mesh>)}</group>)}
+  </StaticMerge>
+  {Array.from({length:8},(_,i)=><Car key={i} lane={i%2===0?-1:1} index={i} progress={progress} reduced={reduced}/>)}
+  <group position={[0,7.0,-1.6]}><StaticMerge>
+   <RoundedBox args={[9.2,1.35,.65]} radius={.16}><meshStandardMaterial color="#080e15" metalness={.7} roughness={.3}/></RoundedBox>
+   {Array.from({length:5},(_,i)=><group key={i} position={[-3.3+i*1.65,0,.39]}><mesh><cylinderGeometry args={[.54,.54,.24,48]}/><meshStandardMaterial color="#101720" metalness={.72} roughness={.24}/></mesh><mesh position={[0,0,.115]}><torusGeometry args={[.43,.055,10,48]}/><meshStandardMaterial color="#9aa8b6" metalness={.86} roughness={.22}/></mesh><mesh ref={el=>{lightRefs.current[i]=el}} userData={{noMerge:true}} position={[0,0,.09]}><circleGeometry args={[.385,48]}/><meshStandardMaterial color="#292c31" emissive="#090a0b" emissiveIntensity={.2} toneMapped={false}/></mesh><mesh ref={el=>{haloRefs.current[i]=el}} userData={{noMerge:true}} position={[0,0,.14]}><circleGeometry args={[.55,48]}/><meshBasicMaterial color="#ff392d" transparent opacity={0} depthWrite={false}/></mesh><CountdownDigit number={5-i}/></group>)}
+  </StaticMerge></group>
+
  </>;
 }
-export default function RaceStartScene({progress,reduced}:Props){return <div className="cinematic-canvas" aria-hidden="true"><Canvas dpr={[1,1.6]} camera={{position:[0,9.5,24],fov:51}} gl={{antialias:true,alpha:false}}><Race progress={progress} reduced={reduced}/></Canvas></div>}
+export default function RaceStartScene({progress,reduced}:Props){
+ const wrap=useRef<HTMLDivElement>(null);
+ const [active,setActive]=useState(true);
+ const [ready,setReady]=useState(false);
+ const [dpr,setDpr]=useState(1.5);
+ useEffect(()=>{
+  // Stop rendering entirely while the hero is off-screen, so the rest of the page scrolls smoothly.
+  const el=wrap.current;if(!el)return;
+  const io=new IntersectionObserver(([entry])=>setActive(entry.isIntersecting),{rootMargin:'120px 0px'});
+  io.observe(el);
+  const onVisibility=()=>{if(document.hidden)setActive(false);else setActive(el.getBoundingClientRect().bottom>0);};
+  document.addEventListener('visibilitychange',onVisibility);
+  return()=>{io.disconnect();document.removeEventListener('visibilitychange',onVisibility);};
+ },[]);
+ return <div ref={wrap} className={`cinematic-canvas ${ready?'is-ready':''}`} aria-hidden="true">
+  <Canvas dpr={dpr} frameloop={reduced?'demand':active?'always':'never'} camera={{position:[0,9.5,24],fov:51}} gl={{antialias:true,alpha:false,powerPreference:'high-performance'}} onCreated={()=>requestAnimationFrame(()=>setReady(true))}>
+   <PerformanceMonitor onDecline={()=>setDpr(1)} onIncline={()=>setDpr(Math.min(1.5,window.devicePixelRatio||1))} flipflops={3} onFallback={()=>setDpr(1)}/>
+   <Race progress={progress} reduced={reduced}/>
+  </Canvas>
+ </div>;
+}

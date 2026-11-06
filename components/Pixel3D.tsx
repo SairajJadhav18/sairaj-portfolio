@@ -3,7 +3,7 @@ import {Canvas,useFrame} from '@react-three/fiber';
 import {useEffect,useRef} from 'react';
 import * as THREE from 'three';
 export type PixelMood='idle'|'typing'|'social'|'send'|'name'|'email'|'message'|'copy'|'pet'|'wave';
-type Props={mood:PixelMood;trigger:number;pointer:React.MutableRefObject<{x:number;y:number}>;reduced:boolean};
+type Props={mood:PixelMood;trigger:number;pointer:React.MutableRefObject<{x:number;y:number}>;reduced:boolean;active?:boolean};
 const white='#f5f6f3',pink='#e6aabd',dark='#111820';
 // Facial features sit just in front of the smaller curved visor.
 const smileCurve=new THREE.CatmullRomCurve3([
@@ -85,8 +85,8 @@ function Robot({mood,trigger,pointer,reduced}:Props){
   </group>
  </group>;
 }
-export default function Pixel3D(props:Props){
- return <Canvas dpr={[1,1.6]} camera={{position:[0,.35,7.5],fov:35}} gl={{alpha:true,antialias:true,powerPreference:'low-power'}} style={{width:'100%',height:'100%',touchAction:'pan-y'}} frameloop="always">
+export default function Pixel3D({active=true,...props}:Props){
+ return <Canvas dpr={[1,1.5]} camera={{position:[0,.35,7.5],fov:35}} gl={{alpha:true,antialias:true,powerPreference:'low-power'}} style={{width:'100%',height:'100%',touchAction:'pan-y'}} frameloop={active?'always':'never'}>
   <ambientLight intensity={1.7}/>
   <hemisphereLight intensity={1.4} groundColor="#a2b8b1"/>
   <directionalLight position={[-3,5,6]} intensity={2.4}/>

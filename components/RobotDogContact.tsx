@@ -13,18 +13,24 @@ export default function RobotDogContact(){
  const [trigger,setTrigger]=useState(0);
  const pointer=useRef({x:0,y:0});
  const [reduced,setReduced]=useState(false);
+ const [active,setActive]=useState(false);
  const reactTo=(next:PixelMood)=>{setMood(next);setTrigger(n=>n+1)};
 
  useEffect(()=>{
   setReduced(window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+  // Only render Pixel (and track the pointer) while the contact section is near the viewport.
+  let visible=false;
+  const io=new IntersectionObserver(([entry])=>{visible=entry.isIntersecting;setActive(entry.isIntersecting);},{rootMargin:'150px 0px'});
+  if(face.current)io.observe(face.current);
   const onMove=(e:PointerEvent)=>{
+   if(!visible)return;
    const box=face.current?.getBoundingClientRect();
    if(!box)return;
    pointer.current.x=Math.max(-1,Math.min(1,(e.clientX-(box.left+box.width/2))/(box.width*.7)));
    pointer.current.y=Math.max(-1,Math.min(1,((box.top+box.height/2)-e.clientY)/(box.height*.7)));
   };
   window.addEventListener('pointermove',onMove,{passive:true});
-  return()=>window.removeEventListener('pointermove',onMove);
+  return()=>{window.removeEventListener('pointermove',onMove);io.disconnect();};
  },[]);
  const submit=(e:React.FormEvent<HTMLFormElement>)=>{
   e.preventDefault();
@@ -41,9 +47,9 @@ export default function RobotDogContact(){
    <div className="dog-art-panel">
     <div className="meteor-sky realistic-meteor-sky" aria-hidden="true"><div className="night-sky-photo"/><div className="night-sky-vignette"/>{Array.from({length:9},(_,i)=><span key={i} className={`shooting-star shooting-star-${i+1}`}/>)}</div>
     <div className="dog-status"><span>●</span> PIXEL IS ONLINE <span className="dog-dots">•••</span></div>
-    <div className="dog-art pixel-3d-container" ref={face} onPointerEnter={()=>reactTo("wave")} onPointerLeave={()=>setMood("idle")} aria-label="Interactive three-dimensional robot Pixel, who watches the cursor and reacts to interactions">
+    <div className="dog-art pixel-3d-container" ref={face} onClick={()=>reactTo("pet")} onPointerEnter={e=>{if(e.pointerType==='mouse')reactTo("wave")}} onPointerLeave={()=>setMood("idle")} aria-label="Interactive three-dimensional robot Pixel, who watches the cursor and reacts to interactions">
      <div className="pixel-speech" aria-live="polite">{mood==='name'?'Nice to meet you!':mood==='email'?'I’ll keep an eye out!':mood==='message'?'Tell me more!':mood==='typing'?'Ooh, a message!':mood==='social'?'Let’s connect!':mood==='send'?'Ready to send!':mood==='pet'?'That tickles! ♡':mood==='wave'?'Hello there! 👋':mood==='copy'?'Email copied!':'Hi! Want to build something together?'}</div>
-     <Pixel3D mood={mood} trigger={trigger} pointer={pointer} reduced={reduced}/>
+     <Pixel3D mood={mood} trigger={trigger} pointer={pointer} reduced={reduced} active={active}/>
     </div>
     <button type="button" className="pixel-pet-button" onClick={()=>reactTo("pet")}>✦ SAY HELLO TO PIXEL</button>
     <div className="dog-caption"><strong>MEET PIXEL ✳</strong><span>REAL 3D · CURSOR TRACKING · INTERACTIVE</span></div>
